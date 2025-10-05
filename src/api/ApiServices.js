@@ -13,7 +13,13 @@ export class ApiServices {
     return `${this.BASE_URL.BaseApiUrl + endpoint}`;
   }
 
-  // Login de usuarios
+  /**
+   * Call the API to verify data during a login.
+   * @param {String} identifier - User account identifier (email/username).
+   * @param {String} password - User password.
+   * @returns {Promise<Object|String>} - A JSON with the response from the API. A string with the error message indicated by the API.
+   * @throws {Error} - When an error occurs in the current request.
+   */
   async login(identifier, password) {
     try {
       const API = this.getFullApiUrl('/auth/login');
@@ -38,7 +44,12 @@ export class ApiServices {
     }
   }
 
-  // Registro de usuarios
+  /**
+   * Sends user data to the API for registration.
+   * @param {Object} data - The user data for registration.
+   * @returns {Promise<Object|String>} A JSON with the response from the API or a string with an error message.
+   * @throws {Error} When an error occurs in the request.
+   */
   async register(data) {
     try {
       const API = this.getFullApiUrl('/auth/register');
@@ -60,7 +71,12 @@ export class ApiServices {
     }
   }
 
-   // Obtener todos los usuarios
+  /**
+   * Fetches all users from the API.
+   * @param {String} token - The authentication token for authorization.
+   * @returns {Promise<Object>} The API response, typically a list of users.
+   * @throws {Error} When an error occurs in the request.
+   */
   async getUsers(token) {
     try {
       const API = this.getFullApiUrl('/users/');
@@ -79,7 +95,13 @@ export class ApiServices {
     }
   }
 
-  // Obtener un usuario por ID
+  /**
+   * Fetches a single user by their ID from the API.
+   * @param {String} token - The authentication token for authorization.
+   * @param {String|Number} id - The ID of the user to fetch.
+   * @returns {Promise<Object>} The API response, typically the user data.
+   * @throws {Error} When an error occurs in the request.
+   */
   async getUserById(token, id) {
     try {
       const API = this.getFullApiUrl(`/users/${id}`);
@@ -98,7 +120,13 @@ export class ApiServices {
     }
   }
 
-  // Crear un nuevo usuario
+  /**
+   * Creates a new user via the API.
+   * @param {String} token - The authentication token for authorization.
+   * @param {Object} userData - The data for the new user.
+   * @returns {Promise<Object>} The API response, typically the created user data.
+   * @throws {Error} When an error occurs in the request.
+   */
   async createUser(token, userData) {
     try {
       const API = this.getFullApiUrl('/users/');
@@ -118,7 +146,14 @@ export class ApiServices {
     }
   }
 
-  // Actualizar un usuario con PUT
+  /**
+   * Updates a user's data using the PUT method.
+   * @param {String} token - The authentication token for authorization.
+   * @param {String|Number} id - The ID of the user to update.
+   * @param {Object} userData - The new data for the user.
+   * @returns {Promise<Object>} The API response.
+   * @throws {Error} When an error occurs in the request.
+   */
   async updateUserPut(token, id, userData) {
     try {
       const API = this.getFullApiUrl(`/users/${id}`);
@@ -138,7 +173,14 @@ export class ApiServices {
     }
   }
 
-  // Actualizar un usuario con PATCH
+  /**
+   * Partially updates a user's data using the PATCH method.
+   * @param {String} token - The authentication token for authorization.
+   * @param {String|Number} id - The ID of the user to update.
+   * @param {Object} userData - The fields to update.
+   * @returns {Promise<Object>} The API response.
+   * @throws {Error} When an error occurs in the request.
+   */
   async updateUserPatch(token, id, userData) {
     try {
       const API = this.getFullApiUrl(`/users/${id}`);
@@ -158,7 +200,13 @@ export class ApiServices {
     }
   }
 
-  // Eliminar un usuario
+  /**
+   * Deletes a user by their ID via the API.
+   * @param {String} token - The authentication token for authorization.
+   * @param {String|Number} id - The ID of the user to delete.
+   * @returns {Promise<Object>} The API response.
+   * @throws {Error} When an error occurs in the request.
+   */
   async deleteUser(token, id) {
     try {
       const API = this.getFullApiUrl(`/users/${id}`);
