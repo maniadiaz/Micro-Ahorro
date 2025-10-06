@@ -8,8 +8,10 @@ import PublicLayout from './layouts/PublicLayout';
 // Páginas
 import Home from './app/page/home/Home';
 import Login from './app/page/login/Login';
+import Dashboard from './app/page/dashboard/Dashboard';
+import Profile  from './app/page/profile/Profile';
 import NotFound from './app/page/errors/NotFound';
-import Unauthorized from './app/page/errors/NotFound';
+import Unauthorized  from './app/page/errors/NotFound';
 
 import './App.css';
 

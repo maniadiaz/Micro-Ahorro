@@ -1,4 +1,8 @@
-// src/app/page/errors/Unauthorized.jsx
+import { Box, Container, Typography, Button, Paper } from '@mui/material';
+import { ErrorOutline } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+
+
 export const Unauthorized = () => {
   const navigate = useNavigate();
 

@@ -1,151 +1,114 @@
-import { ApiServices } from './../app/services/ApiServices';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { CircularProgress, Box } from '@mui/material';
+import { useEffect } from 'react';
 
-class AuthService extends ApiServices {
-  constructor() {
-    super();
-    this._authData = null;
+// Guard principal de autenticación
+export const AuthGuard = ({ children, requiredRoles = [] }) => {
+  const { isLoggedIn, isAuthenticated, isLoading, checkAuth, hasPermission } = useAuth();
+  const location = useLocation();
+
+  // Verificar autenticación en cada navegación
+  useEffect(() => {
+    checkAuth();
+  }, [location.pathname]);
+
+  // Mostrar loading mientras verifica
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
-  // Login usando el servicio de API heredado
-  async loginUser(identifier, password) {
-    try {
-      const response = await this.login(identifier, password);
-      
-      // Si la respuesta es un string, es un error
-      if (typeof response === 'string') {
-        return { 
-          success: false, 
-          error: response 
-        };
-      }
-
-      // Si el login es exitoso, guardar datos en memoria
-      if (response.user && response.token) {
-        this.setAuthData({
-          user: response.user,
-          token: response.token,
-          loggedInAt: response.loggedInAt,
-          isLoggedIn: true
-        });
-
-        return {
-          success: true,
-          user: response.user,
-          token: response.token,
-          loggedInAt: response.loggedInAt
-        };
-      }
-
-      return { 
-        success: false, 
-        error: 'Respuesta inválida del servidor' 
-      };
-    } catch (error) {
-      console.error('Error en loginUser:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Error al iniciar sesión' 
-      };
-    }
+  // Si no está autenticado, redirigir al login
+  if (!isLoggedIn || !isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Verificar si el token es válido
-  async isAuthenticated() {
-    try {
-      const authData = this.getAuthData();
-      
-      if (!authData || !authData.token) {
-        return false;
+  // Verificar permisos si se especificaron roles
+  if (requiredRoles.length > 0) {
+    const checkPermissions = async () => {
+      const permitted = await hasPermission(requiredRoles);
+      if (!permitted) {
+        return <Navigate to="/unauthorized" replace />;
       }
-
-      // Verificar con el servidor usando checkToken heredado
-      const response = await this.checkToken();
-      
-      // Si la respuesta es exitosa, el token es válido
-      return response && response.status !== false;
-    } catch (error) {
-      console.error('Error verificando autenticación:', error);
-      // Si hay error, considerar no autenticado
-      this.clearAuthData();
-      return false;
-    }
-  }
-
-  // Verificar permisos/roles del usuario
-  async hasPermission(requiredRoles = []) {
-    const authData = this.getAuthData();
+    };
     
-    if (!authData || !authData.user) {
-      return false;
-    }
-
-    // Si no se requieren roles específicos, solo verificar que esté autenticado
-    if (requiredRoles.length === 0) {
-      return true;
-    }
-
-    // Verificar si el usuario tiene alguno de los roles requeridos
-    const userRoles = authData.user.roles || [];
-    return requiredRoles.some(role => userRoles.includes(role));
+    checkPermissions();
   }
 
-  // Cerrar sesión
-  logoutUser() {
-    this.clearAuthData();
+  // Usuario autenticado y con permisos
+  return children;
+};
+
+// Guard para rutas públicas (cuando ya está autenticado no puede acceder)
+export const PublicGuard = ({ children }) => {
+  const { isLoggedIn, isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
-  // Guardar datos de autenticación
-  setAuthData(data) {
-    this._authData = {
-      ...data,
-      isLoggedIn: true
-    };
+  // Si está autenticado, redirigir al dashboard
+  if (isLoggedIn && isAuthenticated) {
+    const from = location.state?.from?.pathname || '/home';
+    return <Navigate to={from} replace />;
   }
 
-  // Obtener datos de autenticación
-  getAuthData() {
-    return this._authData;
+  return children;
+};
+
+// Guard para verificar roles específicos
+export const RoleGuard = ({ children, allowedRoles = [] }) => {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
-  // Obtener solo el usuario
-  getUser() {
-    return this._authData?.user || null;
+  const hasRequiredRole = user?.roles?.some(role => 
+    allowedRoles.includes(role)
+  );
+
+  if (!hasRequiredRole) {
+    return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
 
-  // Obtener solo el token
-  getToken() {
-    return this._authData?.token || null;
-  }
+  return children;
+};
 
-  // Verificar si está logueado
-  isLoggedIn() {
-    return this._authData?.isLoggedIn === true;
-  }
-
-  // Limpiar datos de autenticación
-  clearAuthData() {
-    this._authData = null;
-  }
-
-  // Obtener headers para peticiones autenticadas
-  getAuthHeaders() {
-    const token = this.getToken();
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token}` : ''
-    };
-  }
-
-  // Actualizar datos del usuario sin hacer logout
-  updateUserData(userData) {
-    if (this._authData) {
-      this._authData.user = {
-        ...this._authData.user,
-        ...userData
-      };
-    }
-  }
-}
-
-// Exportar una instancia única (Singleton)
-export const authService = new AuthService();
+// Exportación por defecto del AuthGuard principal
+export default AuthGuard;

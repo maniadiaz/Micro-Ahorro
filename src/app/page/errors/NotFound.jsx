@@ -1,4 +1,3 @@
-// src/app/page/errors/NotFound.jsx
 import { Box, Container, Typography, Button, Paper } from '@mui/material';
 import { ErrorOutline } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';

@@ -1,10 +1,11 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
-import { ApiServices } from './../app/services/ApiServices';
-
-const authService = new ApiServices();
+import { ApiServices } from '../app/services/ApiServices';
 
 const AuthContext = createContext(null);
+
+// Instancia única de ApiServices
+const apiService = new ApiServices();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -23,34 +24,25 @@ export const AuthProvider = ({ children }) => {
   const checkAuth = async () => {
     setIsLoading(true);
     try {
-      // Primero verificar si hay datos de autenticación en memoria
-      const authData = authService.getAuthData();
-      
-      if (!authData || !authData.isLoggedIn) {
-        // No hay sesión activa
+      // Verificar si hay token almacenado
+      if (!token) {
         clearAuthState();
         return;
       }
 
       // Verificar con el servidor si el token sigue siendo válido
-      const authenticated = await authService.isAuthenticated();
+      const response = await apiService.checkToken();
       
-      if (authenticated) {
-        // Token válido, actualizar estado
-        setUser(authData.user);
-        setToken(authData.token);
-        setIsLoggedIn(true);
+      if (response && response.status !== false) {
+        // Token válido
         setIsAuthenticated(true);
-        setLoggedInAt(authData.loggedInAt);
       } else {
         // Token inválido, limpiar sesión
         clearAuthState();
-        authService.clearAuthData();
       }
     } catch (error) {
       console.error('Error verificando autenticación:', error);
       clearAuthState();
-      authService.clearAuthData();
     } finally {
       setIsLoading(false);
     }
@@ -60,23 +52,37 @@ export const AuthProvider = ({ children }) => {
   const login = async (identifier, password) => {
     setIsLoading(true);
     try {
-      const result = await authService.loginUser(identifier, password);
+      const response = await apiService.login(identifier, password);
       
-      if (result.success) {
-        // Actualizar el estado del contexto
-        setUser(result.user);
-        setToken(result.token);
+      // Si la respuesta es un string, es un error
+      if (typeof response === 'string') {
+        return { 
+          success: false, 
+          error: response 
+        };
+      }
+
+      // Si el login es exitoso
+      if (response.user && response.token) {
+        setUser(response.user);
+        setToken(response.token);
         setIsLoggedIn(true);
         setIsAuthenticated(true);
-        setLoggedInAt(result.loggedInAt);
+        setLoggedInAt(response.loggedInAt);
         
         return { success: true };
       }
       
-      return { success: false, error: result.error };
+      return { 
+        success: false, 
+        error: response.message || 'Error al iniciar sesión' 
+      };
     } catch (error) {
       console.error('Error en login:', error);
-      return { success: false, error: error.message };
+      return { 
+        success: false, 
+        error: error.message || 'Error al iniciar sesión' 
+      };
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +90,6 @@ export const AuthProvider = ({ children }) => {
 
   // Función para hacer logout
   const logout = () => {
-    authService.logoutUser();
     clearAuthState();
   };
 
@@ -97,18 +102,41 @@ export const AuthProvider = ({ children }) => {
     setLoggedInAt(null);
   };
 
-  // Verificar permisos
-  const hasPermission = async (roles) => {
-    return await authService.hasPermission(roles);
+  // Verificar permisos (puedes expandir esto según tus necesidades)
+  const hasPermission = async (roles = []) => {
+    if (!user) {
+      return false;
+    }
+
+    // Si no se requieren roles específicos, solo verificar que esté autenticado
+    if (roles.length === 0) {
+      return true;
+    }
+
+    // Verificar si el usuario tiene alguno de los roles requeridos
+    const userRoles = user.roles || [];
+    return roles.some(role => userRoles.includes(role));
   };
 
   // Actualizar datos del usuario
   const updateUser = (userData) => {
-    authService.updateUserData(userData);
     setUser(prevUser => ({
       ...prevUser,
       ...userData
     }));
+  };
+
+  // Obtener el servicio de API con el token actual (útil para otras llamadas)
+  const getApiService = () => {
+    return apiService;
+  };
+
+  // Obtener headers autenticados
+  const getAuthHeaders = () => {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : ''
+    };
   };
 
   const value = {
@@ -122,7 +150,9 @@ export const AuthProvider = ({ children }) => {
     logout,
     checkAuth,
     hasPermission,
-    updateUser
+    updateUser,
+    getApiService,
+    getAuthHeaders
   };
 
   return (
