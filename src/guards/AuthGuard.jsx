@@ -1,4 +1,3 @@
-// guards/AuthGuard.jsx
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './../context/AuthContext';
 import { CircularProgress, Box } from '@mui/material';
