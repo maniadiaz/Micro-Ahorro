@@ -1,7 +1,7 @@
-import { ApiSettings } from './../../environments/development'
+import { environment } from './../../environments/development'
 export class ApiServices {
 
-  BASE_URL = ApiSettings;
+  BASE_URL = environment;
 
   /**
    * Build the destination URL for any services

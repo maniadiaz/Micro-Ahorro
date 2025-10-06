@@ -1,7 +1,7 @@
 // src/app/components/Navbar.jsx
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from './../../../context/AuthContext';
 import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Avatar, Button, Tooltip, MenuItem, } from '@mui/material';
 import { Menu as MenuIcon, Savings, AccountCircle, } from '@mui/icons-material';
 
