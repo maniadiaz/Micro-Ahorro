@@ -14,22 +14,20 @@ export class ApiServices {
 
   async checkToken(token = null) {
     const tokenToUse = token;
+    if (!tokenToUse) throw new Error('Token is required');
 
-    if (!tokenToUse) throw new Error('El Token es requerido');
-
-    const params = new URLSearchParams();
-    params.append('token', tokenToUse);
-
-    const url = this.getFullApiUrl('/auth/checktoken');
+    const url = this.getFullApiUrl('/auth/validate-token');
     const response = await fetch(url, {
       method: "POST",
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString(),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${tokenToUse}`
+      },
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Error del servidor (estatus: ${response.status}, ${errorText})`);
+      throw new Error(`Server error (status: ${response.status}, ${errorText})`);
     }
 
     return await response.json();
