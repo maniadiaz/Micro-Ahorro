@@ -1,5 +1,6 @@
 import Home from './app/page/home/Home';
 import Login from './app/page/login/Login';
+import Navbar from './app/components/Navbar';
 import { Box, Container, Typography, Paper, CircularProgress } from '@mui/material';
 import { Savings } from '@mui/icons-material';
 import './App.css';

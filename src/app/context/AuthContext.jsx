@@ -1,93 +1,175 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { ApiService } from './../services/ApiServices';
+// src/services/authService.js
+import { ApiServices } from './../services/ApiServices';
 
-const apiService = new ApiService();
+class AuthService extends ApiServices {
+  constructor() {
+    super();
+    this._authData = null;
+  }
 
-const AuthContext = createContext(null);
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Verificar autenticación al cargar
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    setIsLoading(true);
+  // Login usando el servicio de API heredado
+  async loginUser(identifier, password) {
     try {
-      const authenticated = await apiService.checkToken();
-      setIsAuthenticated(authenticated);
+      const response = await this.login(identifier, password);
       
-      if (authenticated) {
-        const userData = authService.getUser();
-        setUser(userData);
-      } else {
-        setUser(null);
+      // Si la respuesta es un string, es un error
+      if (typeof response === 'string') {
+        return { 
+          success: false, 
+          error: response 
+        };
       }
+
+      // Si el login es exitoso, guardar datos en memoria
+      if (response.user && response.token) {
+        this.setAuthData({
+          user: response.user,
+          token: response.token,
+          loggedInAt: response.loggedInAt,
+          isLoggedIn: true
+        });
+
+        return {
+          success: true,
+          user: response.user,
+          token: response.token,
+          loggedInAt: response.loggedInAt
+        };
+      }
+
+      return { 
+        success: false, 
+        error: 'Respuesta inválida del servidor' 
+      };
+    } catch (error) {
+      console.error('Error en loginUser:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Error al iniciar sesión' 
+      };
+    }
+  }
+
+  // Verificar si el token es válido
+  async isAuthenticated() {
+    try {
+      const authData = this.getAuthData();
+      
+      if (!authData || !authData.token) {
+        return false;
+      }
+
+      // Verificar con el servidor usando checkToken
+      // Sobrescribir getSession para usar los datos reales
+      const response = await this.checkTokenWithAuth(authData.token);
+      
+      // Si la respuesta es exitosa, el token es válido
+      return response && response.status !== false;
     } catch (error) {
       console.error('Error verificando autenticación:', error);
-      setIsAuthenticated(false);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
+      // Si hay error, considerar no autenticado
+      this.clearAuthData();
+      return false;
     }
-  };
-
-  const login = async (credentials) => {
-    setIsLoading(true);
-    try {
-      const result = await authService.login(credentials);
-      
-      if (result.success) {
-        setUser(result.user);
-        setIsAuthenticated(true);
-        return { success: true };
-      }
-      
-      return { success: false, error: result.error };
-    } catch (error) {
-      console.error('Error en login:', error);
-      return { success: false, error: error.message };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-    setIsAuthenticated(false);
-  };
-
-  const hasPermission = async (roles) => {
-    return await authService.hasPermission(roles);
-  };
-
-  const value = {
-    user,
-    isAuthenticated,
-    isLoading,
-    login,
-    logout,
-    checkAuth,
-    hasPermission
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-// Hook personalizado para usar el contexto
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth debe ser usado dentro de AuthProvider');
   }
-  return context;
-};
+
+  // Método para verificar token con los datos de autenticación actuales
+  async checkTokenWithAuth(token) {
+    if (!token) throw new Error('El Token es requerido');
+
+    const params = new URLSearchParams();
+    params.append('token', token);
+
+    const url = this.getFullApiUrl('/auth/checktoken');
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+    });
+
+    if(!response.ok){
+      const errorText = await response.text();
+      throw new Error(`Error del servidor (estatus: ${response.status}, ${errorText})`);
+    }
+
+    return await response.json();
+  }
+
+  // Verificar permisos/roles del usuario
+  async hasPermission(requiredRoles = []) {
+    const authData = this.getAuthData();
+    
+    if (!authData || !authData.user) {
+      return false;
+    }
+
+    // Si no se requieren roles específicos, solo verificar que esté autenticado
+    if (requiredRoles.length === 0) {
+      return true;
+    }
+
+    // Verificar si el usuario tiene alguno de los roles requeridos
+    const userRoles = authData.user.roles || [];
+    return requiredRoles.some(role => userRoles.includes(role));
+  }
+
+  // Cerrar sesión
+  logoutUser() {
+    this.clearAuthData();
+  }
+
+  // Guardar datos de autenticación
+  setAuthData(data) {
+    this._authData = {
+      ...data,
+      isLoggedIn: true
+    };
+  }
+
+  // Obtener datos de autenticación
+  getAuthData() {
+    return this._authData;
+  }
+
+  // Obtener solo el usuario
+  getUser() {
+    return this._authData?.user || null;
+  }
+
+  // Obtener solo el token
+  getToken() {
+    return this._authData?.token || null;
+  }
+
+  // Verificar si está logueado
+  isLoggedIn() {
+    return this._authData?.isLoggedIn === true;
+  }
+
+  // Limpiar datos de autenticación
+  clearAuthData() {
+    this._authData = null;
+  }
+
+  // Obtener headers para peticiones autenticadas
+  getAuthHeaders() {
+    const token = this.getToken();
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : ''
+    };
+  }
+
+  // Actualizar datos del usuario sin hacer logout
+  updateUserData(userData) {
+    if (this._authData) {
+      this._authData.user = {
+        ...this._authData.user,
+        ...userData
+      };
+    }
+  }
+}
+
+// Exportar una instancia única (Singleton)
+export const authService = new AuthService();
