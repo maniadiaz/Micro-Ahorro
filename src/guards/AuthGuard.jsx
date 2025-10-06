@@ -1,4 +1,4 @@
-import { ApiServices } from '../services/ApiServices';
+import { ApiServices } from './../app/services/ApiServices';
 
 class AuthService extends ApiServices {
   constructor() {

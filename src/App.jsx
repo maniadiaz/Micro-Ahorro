@@ -1,92 +1,60 @@
+// src/App.jsx
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { AuthGuard, PublicGuard } from './guards/AuthGuard';
+import ProtectedLayout from './layouts/ProtectedLayout';
+import PublicLayout from './layouts/PublicLayout';
+
+// Páginas
 import Home from './app/page/home/Home';
 import Login from './app/page/login/Login';
-import Navbar from './app/components/Navbar';
-import { Box, Container, Typography, Paper, CircularProgress } from '@mui/material';
-import { Savings } from '@mui/icons-material';
+import Dashboard from './app/page/dashboard/Dashboard';
+import Profile from './app/page/profile/Profile';
+import NotFound from './app/page/errors/NotFound';
+import Unauthorized from './app/page/errors/Unauthorized';
+
 import './App.css';
-import { Link, Routes, Route } from 'react-router-dom';
 
 function App() {
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      }}
-    >
-      <Container maxWidth="sm">
-        <Paper
-          elevation={8}
-          sx={{
-            p: 6,
-            textAlign: 'center',
-            borderRadius: 4,
-            background: 'rgba(255, 255, 255, 0.95)',
-          }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              mb: 3,
-            }}
-          >
-            <Savings
-              sx={{
-                fontSize: 80,
-                color: '#667eea',
-              }}
-            />
-          </Box>
-
-          <Typography
-            variant="h3"
-            component="h1"
-            gutterBottom
-            sx={{
-              fontWeight: 700,
-              color: '#333',
-              mb: 2,
-            }}
-          >
-            Próximamente
-          </Typography>
-
-          <Typography
-            variant="h4"
-            component="h2"
-            sx={{
-              fontWeight: 500,
-              color: '#667eea',
-              mb: 4,
-            }}
-          >
-            Micro-Ahorro
-          </Typography>
-
-          <Typography
-            variant="body1"
-            sx={{
-              color: '#666',
-              mb: 4,
-            }}
-          >
-            Estamos trabajando en algo increíble para ti
-          </Typography>
-
-          <CircularProgress
-            size={40}
-            sx={{
-              color: '#667eea',
-            }}
+    <AuthProvider>
+      <Routes>
+        {/* Rutas públicas - SIN navbar */}
+        <Route element={<PublicLayout />}>
+          <Route
+            path="/login"
+            element={
+              <PublicGuard>
+                <Login />
+              </PublicGuard>
+            }
           />
-        </Paper>
-      </Container>
-    </Box>
-  )
+        </Route>
+
+        {/* Rutas protegidas - CON navbar */}
+        <Route
+          element={
+            <AuthGuard>
+              <ProtectedLayout />
+            </AuthGuard>
+          }
+        >
+          <Route path="/home" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          {/* Agrega más rutas protegidas aquí */}
+        </Route>
+
+        {/* Rutas de error */}
+        <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/404" element={<NotFound />} />
+
+        {/* Redirecciones */}
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
+      </Routes>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
