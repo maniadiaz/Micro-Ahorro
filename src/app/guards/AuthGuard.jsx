@@ -1,38 +1,111 @@
-const parseJwt = (token) => {
-  try {
-    return JSON.parse(atob(token.split('.')[1]));
-  } catch (e) {
-    return null;
+// src/guards/AuthGuard.jsx
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { CircularProgress, Box } from '@mui/material';
+import { useEffect } from 'react';
+
+export const AuthGuard = ({ children, requiredRoles = [] }) => {
+  const { isAuthenticated, isLoading, checkAuth, hasPermission } = useAuth();
+  const location = useLocation();
+
+  // Verificar autenticación en cada navegación
+  useEffect(() => {
+    checkAuth();
+  }, [location.pathname]);
+
+  // Mostrar loading mientras verifica
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
+
+  // Si no está autenticado, redirigir al login
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Verificar permisos si se especificaron roles
+  if (requiredRoles.length > 0) {
+    const checkPermissions = async () => {
+      const permitted = await hasPermission(requiredRoles);
+      if (!permitted) {
+        return <Navigate to="/unauthorized" replace />;
+      }
+    };
+    
+    checkPermissions();
+  }
+
+  // Usuario autenticado y con permisos
+  return children;
 };
 
-const isAuthenticated = () => {
-  const token = localStorage.getItem('token');
+// Guard para rutas públicas (cuando ya está autenticado no puede acceder)
+export const PublicGuard = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
 
-  if (!token) {
-    return false;
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
-  const decodedJwt = parseJwt(token);
-
-  if (decodedJwt.exp * 1000 < Date.now()) {
-    localStorage.removeItem('token');
-    return false;
+  // Si está autenticado, redirigir al dashboard
+  if (isAuthenticated) {
+    const from = location.state?.from?.pathname || '/dashboard';
+    return <Navigate to={from} replace />;
   }
 
-  return true;
+  return children;
 };
 
-const withAuth = (Component) => {
-  const AuthRoute = (props) => {
-    if (isAuthenticated()) {
-      return ;  // Autenticado
-    }
+// Guard para verificar roles específicos
+export const RoleGuard = ({ children, allowedRoles = [] }) => {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
 
-    return; // LOGIN 
-  };
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-  return AuthRoute;
+  const hasRequiredRole = user?.roles?.some(role => 
+    allowedRoles.includes(role)
+  );
+
+  if (!hasRequiredRole) {
+    return <Navigate to="/unauthorized" state={{ from: location }} replace />;
+  }
+
+  return children;
 };
-
-export default withAuth;
