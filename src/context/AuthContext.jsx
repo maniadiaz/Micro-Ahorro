@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
-import { ApiServices } from '../app/services/ApiServices';
+import { ApiServices } from './../services/ApiServices';
 
 const AuthContext = createContext(null);
 
@@ -15,82 +15,111 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [loggedInAt, setLoggedInAt] = useState(null);
 
-  // Verificar autenticación al cargar la aplicación
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
   // Función para verificar la autenticación
-  const checkAuth = async () => {
-    setIsLoading(true);
-    try {
-      // Verificar si hay token almacenado
-      if (!token) {
-        clearAuthState();
-        return;
-      }
+  const checkAuth = async (tokenOverride) => {
+    // Usar el token que se pasa como argumento, o si no, el del estado.
+    const tokenToVerify = tokenOverride || token;
 
-      // Verificar con el servidor si el token sigue siendo válido
+    if (!tokenToVerify) {
+      clearAuthState();
+      return false;
+    }
+    try {
+      apiService.setToken(tokenToVerify);
+
       const response = await apiService.checkToken();
-      
+
       if (response && response.status !== false) {
-        // Token válido
         setIsAuthenticated(true);
+        setIsLoading(false);
+        return true;
       } else {
-        // Token inválido, limpiar sesión
         clearAuthState();
+        return false;
       }
     } catch (error) {
       console.error('Error verificando autenticación:', error);
       clearAuthState();
-    } finally {
-      setIsLoading(false);
+      return false;
     }
   };
+
+  // Cargar datos del localStorage al inicializar
+  useEffect(() => {
+    const initializeAuth = () => {
+      const storedToken = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      const storedLoggedInAt = localStorage.getItem('loggedInAt');
+
+      if (storedToken && storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setToken(storedToken);
+          setUser(parsedUser);
+          setLoggedInAt(storedLoggedInAt);
+          setIsLoggedIn(true);
+
+          // Llamar a checkAuth pasándole el token directamente
+          // para evitar la condición de carrera.
+          checkAuth(storedToken);
+        } catch (error) {
+          console.error('Error parsing stored user data:', error);
+          clearAuthState();
+        }
+      } else {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   // Función para hacer login
   const login = async (identifier, password) => {
     setIsLoading(true);
     try {
       const response = await apiService.login(identifier, password);
-      
-      // Si la respuesta es un string, es un error
+
       if (typeof response === 'string') {
-        return { 
-          success: false, 
-          error: response 
+        return {
+          success: false,
+          error: response
         };
       }
 
-      // Si el login es exitoso
       if (response.user && response.token) {
+        const loginTime = new Date().toISOString();
+
         setUser(response.user);
         setToken(response.token);
         setIsLoggedIn(true);
         setIsAuthenticated(true);
-        setLoggedInAt(response.loggedInAt);
-        
+        setLoggedInAt(loginTime);
+
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        localStorage.setItem('loggedInAt', loginTime);
+
+        apiService.setToken(response.token);
+
         return { success: true };
       }
-      
-      return { 
-        success: false, 
-        error: response.message || 'Error al iniciar sesión' 
+
+      return {
+        success: false,
+        error: response.message || 'Error al iniciar sesión'
       };
     } catch (error) {
       console.error('Error en login:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Error al iniciar sesión' 
+      return {
+        success: false,
+        error: error.message || 'Error al iniciar sesión'
       };
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Función para hacer logout
-  const logout = () => {
-    clearAuthState();
   };
 
   // Limpiar el estado de autenticación
@@ -100,44 +129,48 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
     setIsAuthenticated(false);
     setLoggedInAt(null);
+    setIsLoading(false);
+
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('loggedInAt');
+
+    apiService.setToken(null);
   };
 
-  // Verificar permisos (puedes expandir esto según tus necesidades)
-  const hasPermission = async (roles = []) => {
+  // Función para hacer logout
+  const logout = () => {
+    clearAuthState();
+  };
+
+  // Verificar permisos
+  const hasPermission = (roles = []) => {
     if (!user) {
       return false;
     }
-
-    // Si no se requieren roles específicos, solo verificar que esté autenticado
     if (roles.length === 0) {
-      return true;
+      return isAuthenticated;
     }
-
-    // Verificar si el usuario tiene alguno de los roles requeridos
     const userRoles = user.roles || [];
     return roles.some(role => userRoles.includes(role));
   };
 
   // Actualizar datos del usuario
   const updateUser = (userData) => {
-    setUser(prevUser => ({
-      ...prevUser,
+    const updatedUser = {
+      ...user,
       ...userData
-    }));
-  };
-
-  // Obtener el servicio de API con el token actual (útil para otras llamadas)
-  const getApiService = () => {
-    return apiService;
-  };
-
-  // Obtener headers autenticados
-  const getAuthHeaders = () => {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token}` : ''
     };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
+
+  const getApiService = () => apiService;
+
+  const getAuthHeaders = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': token ? `Bearer ${token}` : ''
+  });
 
   const value = {
     user,
@@ -162,7 +195,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Hook personalizado para usar el contexto
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -171,5 +203,4 @@ export const useAuth = () => {
   return context;
 };
 
-// Exportación por defecto del Provider
 export default AuthProvider;

@@ -9,9 +9,9 @@ import PublicLayout from './layouts/PublicLayout';
 import Home from './app/page/home/Home';
 import Login from './app/page/login/Login';
 import Dashboard from './app/page/dashboard/Dashboard';
-import Profile  from './app/page/profile/Profile';
+import Profile from './app/page/profile/Profile';
 import NotFound from './app/page/errors/NotFound';
-import Unauthorized  from './app/page/errors/NotFound';
+import Unauthorized from './app/page/errors/Unauthorized';
 
 import './App.css';
 
@@ -19,7 +19,7 @@ function App() {
   return (
     <AuthProvider>
       <Routes>
-        {/* Rutas públicas - SIN navbar */}
+        {/* Rutas públicas anidadas bajo PublicLayout */}
         <Route element={<PublicLayout />}>
           <Route
             path="/login"
@@ -31,7 +31,7 @@ function App() {
           />
         </Route>
 
-        {/* Rutas protegidas - CON navbar */}
+        {/* Rutas protegidas anidadas bajo AuthGuard y ProtectedLayout */}
         <Route
           element={
             <AuthGuard>
@@ -39,6 +39,8 @@ function App() {
             </AuthGuard>
           }
         >
+          {/* La ruta raíz ahora intenta ir a Home, AuthGuard decidirá */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
@@ -47,14 +49,12 @@ function App() {
 
         {/* Rutas de error */}
         <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="/404" element={<NotFound />} />
-
-        {/* Redirecciones */}
-        <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
+        <Route path="/404" element={<NotFound />} />
       </Routes>
     </AuthProvider>
   );
 }
 
 export default App;
+

@@ -1,7 +1,11 @@
-import { environment } from './../../environments/development'
+import { environment } from '../environments/development'
 export class ApiServices {
 
   BASE_URL = environment;
+
+  constructor() {
+    this._token = null;
+  }
 
   /**
    * Build the destination URL for any services
@@ -12,26 +16,46 @@ export class ApiServices {
     return `${this.BASE_URL.apiUrl + endpoint}`;
   }
 
-  async checkToken(token = null) {
-    const tokenToUse = token;
-    if (!tokenToUse) throw new Error('Token is required');
+  // Establecer el token actual
+  setToken(token) {
+    this._token = token;
+  }
 
-    const url = this.getFullApiUrl('/auth/validate-token');
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${tokenToUse}`
-      },
-    });
+  // Obtener el token actual
+  getToken() {
+    return this._token;
+  }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Server error (status: ${response.status}, ${errorText})`);
+  async checkToken() {
+    const token = this.getToken();
+    if (!token) {
+      console.warn('checkToken called but no token available');
+      return { status: false, message: 'No token available' };
     }
 
-    return await response.json();
+    const url = this.getFullApiUrl('/auth/validate-token');
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'x-www-form-urlencoded',
+          'Authorization': `Bearer ${token}`
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error del servidor (estatus: ${response.status}, ${errorText})`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error in checkToken:', error);
+      throw error;
+    }
   }
+
+
   /**
    * Call the API to verify data during a login.
    * @param {String} identifier - User account identifier (email/username).

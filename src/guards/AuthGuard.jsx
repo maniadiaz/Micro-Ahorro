@@ -1,17 +1,12 @@
+// guards/AuthGuard.jsx
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from './../context/AuthContext';
 import { CircularProgress, Box } from '@mui/material';
-import { useEffect } from 'react';
 
 // Guard principal de autenticación
 export const AuthGuard = ({ children, requiredRoles = [] }) => {
-  const { isLoggedIn, isAuthenticated, isLoading, checkAuth, hasPermission } = useAuth();
+  const { isLoggedIn, isAuthenticated, isLoading, hasPermission } = useAuth();
   const location = useLocation();
-
-  // Verificar autenticación en cada navegación
-  useEffect(() => {
-    checkAuth();
-  }, [location.pathname]);
 
   // Mostrar loading mientras verifica
   if (isLoading) {
@@ -36,24 +31,19 @@ export const AuthGuard = ({ children, requiredRoles = [] }) => {
 
   // Verificar permisos si se especificaron roles
   if (requiredRoles.length > 0) {
-    const checkPermissions = async () => {
-      const permitted = await hasPermission(requiredRoles);
-      if (!permitted) {
-        return <Navigate to="/unauthorized" replace />;
-      }
-    };
-    
-    checkPermissions();
+    const permitted = hasPermission(requiredRoles);
+    if (!permitted) {
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   // Usuario autenticado y con permisos
   return children;
 };
 
-// Guard para rutas públicas (cuando ya está autenticado no puede acceder)
+// Guard para rutas públicas
 export const PublicGuard = ({ children }) => {
   const { isLoggedIn, isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -70,10 +60,9 @@ export const PublicGuard = ({ children }) => {
     );
   }
 
-  // Si está autenticado, redirigir al dashboard
+  // Si está autenticado, redirigir al home
   if (isLoggedIn && isAuthenticated) {
-    const from = location.state?.from?.pathname || '/home';
-    return <Navigate to={from} replace />;
+    return <Navigate to="/home" replace />;
   }
 
   return children;
@@ -81,7 +70,7 @@ export const PublicGuard = ({ children }) => {
 
 // Guard para verificar roles específicos
 export const RoleGuard = ({ children, allowedRoles = [] }) => {
-  const { user, isLoading } = useAuth();
+  const { hasPermission, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -99,16 +88,14 @@ export const RoleGuard = ({ children, allowedRoles = [] }) => {
     );
   }
 
-  const hasRequiredRole = user?.roles?.some(role => 
-    allowedRoles.includes(role)
-  );
+  const permitted = hasPermission(allowedRoles);
 
-  if (!hasRequiredRole) {
+  if (!permitted) {
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
 
   return children;
 };
 
-// Exportación por defecto del AuthGuard principal
 export default AuthGuard;
+

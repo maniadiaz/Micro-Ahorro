@@ -3,7 +3,7 @@ import { ErrorOutline } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 
-export const Unauthorized = () => {
+export default function Unauthorized() {
   const navigate = useNavigate();
 
   return (
