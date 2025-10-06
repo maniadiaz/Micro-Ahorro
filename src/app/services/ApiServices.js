@@ -9,7 +9,7 @@ export class ApiServices {
    * @returns {String} - Destination URL
    */
   getFullApiUrl(endpoint) {
-    return `${this.BASE_URL.BaseApiUrl + endpoint}`;
+    return `${this.BASE_URL.apiUrl + endpoint}`;
   }
 
   async checkToken(token = null) {
