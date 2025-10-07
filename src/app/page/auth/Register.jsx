@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Box, TextField, Button, Typography, Paper, CircularProgress, Snackbar, Alert, InputAdornment, IconButton, Link, Collapse, LinearProgress, } from '@mui/material';
 import { Visibility, VisibilityOff, PersonAdd, PersonOutline, EmailOutlined, LockOutlined, BadgeOutlined, } from '@mui/icons-material';
 import { ApiServices } from './../../../services/ApiServices';
+import { useTranslation } from 'react-i18next';
 
 const apiService = new ApiServices();
 
 // Componente para la barra de fortaleza de contraseña
 const PasswordStrengthMeter = ({ password }) => {
+  const { t } = useTranslation();
   const getStrength = (pass) => {
     let score = 0;
     if (!pass) return 0;
@@ -31,9 +33,9 @@ const PasswordStrengthMeter = ({ password }) => {
 
   const getLabel = () => {
     if (strength === 0) return '';
-    if (strength <= 2) return 'Weak';
-    if (strength <= 4) return 'Average';
-    return 'Strong';
+    if (strength <= 2) return t('register.passwordStrength.weak');
+    if (strength <= 4) return t('register.passwordStrength.average');
+    return t('register.passwordStrength.strong');
   };
 
   return (
@@ -43,10 +45,11 @@ const PasswordStrengthMeter = ({ password }) => {
         value={progress}
         color={getColor()}
         sx={{ height: 6, borderRadius: 3 }}
+        aria-label={t('register.passwordStrength.meter')}
       />
       {password && (
         <Typography variant="caption" color={getColor()} sx={{ mt: 0.5, display: 'block' }}>
-          Password: {getLabel()}
+          {t('register.passwordStrength.label')} {getLabel()}
         </Typography>
       )}
     </Box>
@@ -54,6 +57,7 @@ const PasswordStrengthMeter = ({ password }) => {
 };
 
 const Register = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -78,27 +82,27 @@ const Register = () => {
     let error = '';
     switch (name) {
       case 'first_name':
-        if (!value.trim()) error = 'First name is required';
+        if (!value.trim()) error = t('register.validation.firstNameRequired');
         break;
       case 'last_name':
-        if (!value.trim()) error = 'Last name is required';
+        if (!value.trim()) error = t('register.validation.lastNameRequired');
         break;
       case 'nickname':
-        if (!value.trim()) error = 'Username is required';
+        if (!value.trim()) error = t('register.validation.usernameRequired');
         break;
       case 'email':
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
-          error = 'Invalid email';
+          error = t('register.validation.invalidEmail');
         break;
       case 'password':
         if (value.length < 8)
-          error = 'The password must be at least 8 characters long.';
+          error = t('register.validation.passwordMinLength');
         else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value))
-          error = 'Must contain uppercase, lowercase, and numbers';
+          error = t('register.validation.passwordRequirements');
         break;
       case 'confirmPassword':
         if (value !== formData.password)
-          error = 'Passwords do not match';
+          error = t('register.validation.passwordsDoNotMatch');
         break;
       default:
         break;
@@ -142,7 +146,7 @@ const Register = () => {
       if (response) {
         setSnackbar({
           open: true,
-          message: '¡Registration successful! Redirecting to login...',
+          message: t('register.snackbar.success'),
           severity: 'success'
         });
 
@@ -154,7 +158,7 @@ const Register = () => {
     } catch (error) {
       setSnackbar({
         open: true,
-        message: error.message || 'Error registering user',
+        message: error.message || t('register.snackbar.error'),
         severity: 'error'
       });
     } finally {
@@ -201,10 +205,10 @@ const Register = () => {
               <PersonAdd sx={{ fontSize: { xs: 30, md: 40 }, color: 'white' }} />
             </Box>
             <Typography component="h1" variant="h4" sx={{ fontWeight: { xs: 500, md: 700 }, mb: 1 }}>
-              Create account
+              {t('register.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary" mb={2}>
-              Join our community. It's quick and easy!
+              {t('register.subtitle')}
             </Typography>
           </Box>
 
@@ -216,8 +220,8 @@ const Register = () => {
                 fullWidth
                 required
                 name="first_name"
-                label="First name"
-                placeholder="First name"
+                label={t('register.firstName')}
+                placeholder={t('register.firstName')}
                 value={formData.first_name}
                 onChange={handleChange}
                 error={!!errors.first_name}
@@ -239,8 +243,8 @@ const Register = () => {
                 fullWidth
                 required
                 name="last_name"
-                label="Last name"
-                placeholder="Last name"
+                label={t('register.lastName')}
+                placeholder={t('register.lastName')}
                 value={formData.last_name}
                 onChange={handleChange}
                 error={!!errors.last_name}
@@ -262,8 +266,8 @@ const Register = () => {
                 fullWidth
                 required
                 name="nickname"
-                label="Nickname"
-                placeholder="Nickname"
+                label={t('register.nickname')}
+                placeholder={t('register.nickname')}
                 value={formData.nickname}
                 onChange={handleChange}
                 error={!!errors.nickname}
@@ -286,8 +290,8 @@ const Register = () => {
                 required
                 type="email"
                 name="email"
-                label="Email"
-                placeholder="Email"
+                label={t('register.email')}
+                placeholder={t('register.email')}
                 value={formData.email}
                 onChange={handleChange}
                 error={!!errors.email}
@@ -309,13 +313,13 @@ const Register = () => {
                 fullWidth
                 required
                 name="password"
-                label="Password"
-                placeholder="Enter your password"
+                label={t('register.password')}
+                placeholder={t('register.passwordPlaceholder')}
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={handleChange}
                 error={!!errors.password}
-                helperText={errors.password || "Use 8+ characters with uppercase, lowercase, and numbers"}
+                helperText={errors.password || t('register.passwordHelper')}
                 disabled={loading}
                 InputProps={{
                   startAdornment: (
@@ -326,6 +330,7 @@ const Register = () => {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
+                        aria-label={t('register.togglePasswordVisibility')}
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
                       >
@@ -345,8 +350,8 @@ const Register = () => {
                   fullWidth
                   required
                   name="confirmPassword"
-                  label="Confirm Password"
-                  placeholder="Confirm Password"
+                  label={t('register.confirmPassword')}
+                  placeholder={t('register.confirmPassword')}
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={formData.confirmPassword}
                   onChange={handleChange}
@@ -362,6 +367,7 @@ const Register = () => {
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
+                          aria-label={t('register.toggleConfirmPasswordVisibility')}
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           edge="end"
                         >
@@ -391,21 +397,21 @@ const Register = () => {
               {loading ? (
                 <CircularProgress size={24} color="inherit" />
               ) : (
-                'Register'
+                t('register.registerButton')
               )}
             </Button>
 
             {/* Link a Login */}
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
-                Already have an account?{' '}
+                {t('register.alreadyHaveAccount')}{' '}
                 <Link
                   component="button"
                   variant="body2"
                   onClick={() => navigate('/login')}
                   sx={{ fontWeight: 600 }}
                 >
-                  Sign in
+                  {t('register.signIn')}
                 </Link>
               </Typography>
             </Box>

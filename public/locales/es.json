@@ -1,0 +1,65 @@
+{
+  "login": {
+    "success": "¡Inicio de sesión exitoso!",
+    "incorrectCredentials": "Usuario o contraseña incorrectos",
+    "unexpectedError": "Error inesperado al iniciar sesión",
+    "loggingIn": "Iniciando sesión...",
+    "welcome": "Bienvenido",
+    "credentialsPrompt": "Ingresa tus credenciales para continuar",
+    "emailOrUsernameLabel": "Correo electrónico o usuario",
+    "emailPlaceholder": "texto@email.com",
+    "passwordLabel": "Contraseña",
+    "passwordPlaceholder": "Ingresa tu contraseña",
+    "togglePasswordVisibility": "Mostrar/ocultar contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "submitButton": "Iniciar sesión",
+    "divider": "O",
+    "createAccountButton": "Crear una cuenta",
+    "noAccountPrompt": "¿No tienes una cuenta?",
+    "registerHereLink": "Regístrate aquí"
+  },
+  "restorePassword": {
+    "featureInProgress": "Función en Progreso",
+    "workingHardMessage": "Estamos trabajando duro para implementar la función de recuperación de contraseña. ¡Estará lista muy pronto!",
+    "returnToLogin": "Volver al Login",
+    "loading": "Cargando..."
+  },
+  "register": {
+    "togglePasswordVisibility": "Mostrar/ocultar contraseña",
+    "toggleConfirmPasswordVisibility": "Mostrar/ocultar confirmación de contraseña",
+    "loading": "Registrando...",
+    "passwordStrength": {
+      "weak": "Débil",
+      "average": "Media",
+      "strong": "Fuerte",
+      "label": "Contraseña: ",
+      "meter": "Medidor de la fuerza de la contraseña"
+    },
+    "validation": {
+      "firstNameRequired": "El nombre es requerido",
+      "lastNameRequired": "El apellido es requerido",
+      "usernameRequired": "El nombre de usuario es requerido",
+      "invalidEmail": "Email inválido",
+      "passwordMinLength": "La contraseña debe tener al menos 8 caracteres.",
+      "passwordRequirements": "Debe contener mayúsculas, minúsculas y números",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden"
+    },
+    "snackbar": {
+      "success": "¡Registro exitoso! Redirigiendo al login...",
+      "error": "Error al registrar el usuario"
+    },
+    "title": "Crear cuenta",
+    "subtitle": "Únete a nuestra comunidad. ¡Es rápido y fácil!",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "nickname": "Apodo",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "passwordPlaceholder": "Ingresa tu contraseña",
+    "passwordHelper": "Usa 8+ caracteres con mayúsculas, minúsculas y números",
+    "confirmPassword": "Confirmar Contraseña",
+    "registerButton": "Registrarse",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "signIn": "Iniciar sesión"
+  }
+}

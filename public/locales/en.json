@@ -1,0 +1,65 @@
+{
+  "login": {
+    "success": "Login successful!",
+    "incorrectCredentials": "Incorrect username or password",
+    "unexpectedError": "Unexpected error when logging in",
+    "loggingIn": "Logging in...",
+    "welcome": "Welcome",
+    "credentialsPrompt": "Enter your credentials to continue",
+    "emailOrUsernameLabel": "Email or Username",
+    "emailPlaceholder": "text@email.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "togglePasswordVisibility": "Toggle password visibility",
+    "forgotPassword": "Forgot your password?",
+    "submitButton": "Log in",
+    "divider": "OR",
+    "createAccountButton": "Create an account",
+    "noAccountPrompt": "Don't have an account?",
+    "registerHereLink": "Register here"
+  },
+  "restorePassword": {
+    "featureInProgress": "Feature in Progress",
+    "workingHardMessage": "We are working hard to implement the password recovery feature. It will be ready very soon!",
+    "returnToLogin": "Return to Login",
+    "loading": "Loading..."
+  },
+  "register": {
+    "togglePasswordVisibility": "Toggle password visibility",
+    "toggleConfirmPasswordVisibility": "Toggle confirm password visibility",
+    "loading": "Registering...",
+    "passwordStrength": {
+      "weak": "Weak",
+      "average": "Average",
+      "strong": "Strong",
+      "label": "Password: ",
+      "meter": "Password strength meter"
+    },
+    "validation": {
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "usernameRequired": "Username is required",
+      "invalidEmail": "Invalid email",
+      "passwordMinLength": "The password must be at least 8 characters long.",
+      "passwordRequirements": "Must contain uppercase, lowercase, and numbers",
+      "passwordsDoNotMatch": "Passwords do not match"
+    },
+    "snackbar": {
+      "success": "Registration successful! Redirecting to login...",
+      "error": "Error registering user"
+    },
+    "title": "Create account",
+    "subtitle": "Join our community. It's quick and easy!",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "nickname": "Nickname",
+    "email": "Email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "passwordHelper": "Use 8+ characters with uppercase, lowercase, and numbers",
+    "confirmPassword": "Confirm Password",
+    "registerButton": "Register",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in"
+  }
+}

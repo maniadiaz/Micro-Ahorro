@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { Container, Box, TextField, Button, Typography, Paper, CircularProgress, Snackbar, Alert, InputAdornment, IconButton, Backdrop, Divider, Link } from '@mui/material';
 import { Visibility, VisibilityOff, LockOutlined, PersonOutline, PersonAdd } from '@mui/icons-material';
+import { Link as RouterLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
+  const { t } = useTranslation();
   const [credentials, setCredentials] = useState({
     identifier: '',
     password: ''
@@ -23,7 +26,7 @@ const Login = () => {
 
   const from = location.state?.from?.pathname || '/home';
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setLoading(true);
 
@@ -33,7 +36,7 @@ const Login = () => {
       if (result.success) {
         setSnackbar({
           open: true,
-          message: 'Login successful!',
+          message: t('login.success'),
           severity: 'success'
         });
 
@@ -44,47 +47,44 @@ const Login = () => {
       } else {
         setSnackbar({
           open: true,
-          message: result.error || 'Incorrect username or password',
+          message: result.error || t('login.incorrectCredentials'),
           severity: 'error'
         });
       }
     } catch (error) {
       setSnackbar({
         open: true,
-        message: 'Unexpected error when logging in',
+        message: t('login.unexpectedError'),
         severity: 'error'
       });
       console.error('Error en login:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [credentials.identifier, credentials.password, from, login, navigate, t]);
 
-  const handleChange = (e) => {
-    setCredentials({
-      ...credentials,
-      [e.target.name]: e.target.value
-    });
-  };
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setCredentials(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  }, []);
 
-  const handleCloseSnackbar = (event, reason) => {
+  const handleCloseSnackbar = useCallback((event, reason) => {
     if (reason === 'clickaway') {
       return;
     }
-    setSnackbar({ ...snackbar, open: false });
-  };
+    setSnackbar(prev => ({ ...prev, open: false }));
+  }, []);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  const togglePasswordVisibility = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
 
-  const handleRegisterClick = () => {
+  const handleRegisterClick = useCallback(() => {
     navigate('/register');
-  };
-
-  const handleRestartPassword = () => {
-    navigate('/restore-password');
-  }
+  }, [navigate]);
 
   return (
     <>
@@ -100,7 +100,7 @@ const Login = () => {
         open={loading}
       >
         <CircularProgress color="inherit" size={60} />
-        <Typography variant="h6">Logging in...</Typography>
+        <Typography variant="h6">{t('login.loggingIn')}</Typography>
       </Backdrop>
 
       <Container maxWidth="sm">
@@ -156,7 +156,7 @@ const Login = () => {
                 mb: 1
               }}
             >
-              Welcome
+              {t('login.welcome')}
             </Typography>
 
             <Typography
@@ -165,7 +165,7 @@ const Login = () => {
               color="text.secondary"
               sx={{ mb: 4 }}
             >
-              Enter your credentials to continue
+              {t('login.credentialsPrompt')}
             </Typography>
 
             <Box component="form" onSubmit={handleSubmit}>
@@ -174,11 +174,11 @@ const Login = () => {
                 required
                 fullWidth
                 id="identifier"
-                label="Email or Username"
+                label={t('login.emailOrUsernameLabel')}
                 name="identifier"
                 autoComplete="email"
                 autoFocus
-                placeholder="text@email.com"
+                placeholder={t('login.emailPlaceholder')}
                 value={credentials.identifier}
                 onChange={handleChange}
                 disabled={loading}
@@ -201,11 +201,11 @@ const Login = () => {
                 required
                 fullWidth
                 name="password"
-                label="Password"
+                label={t('login.passwordLabel')}
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 autoComplete="current-password"
-                placeholder="Enter your password"
+                placeholder={t('login.passwordPlaceholder')}
                 value={credentials.password}
                 onChange={handleChange}
                 disabled={loading}
@@ -218,7 +218,7 @@ const Login = () => {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
-                        aria-label="toggle password visibility"
+                        aria-label={t('login.togglePasswordVisibility')}
                         onClick={togglePasswordVisibility}
                         edge="end"
                         disabled={loading}
@@ -238,7 +238,8 @@ const Login = () => {
               {/* Link de olvidé mi contraseña */}
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
                 <Link
-                  onClick={handleRestartPassword}
+                  component={RouterLink}
+                  to="/restore-password"
                   variant="body2"
                   sx={{
                     textDecoration: 'none',
@@ -248,7 +249,7 @@ const Login = () => {
                     }
                   }}
                 >
-                  Forgot your password?
+                  {t('login.forgotPassword')}
                 </Link>
               </Box>
 
@@ -273,13 +274,13 @@ const Login = () => {
                   }
                 }}
               >
-                Login in
+                {t('login.submitButton')}
               </Button>
 
               {/* Divider */}
               <Divider sx={{ my: 3 }}>
                 <Typography variant="body2" color="text.secondary">
-                  O
+                  {t('login.divider')}
                 </Typography>
               </Divider>
 
@@ -304,13 +305,13 @@ const Login = () => {
                   }
                 }}
               >
-                Create an account
+                {t('login.createAccountButton')}
               </Button>
 
               {/* Texto alternativo para registro */}
               <Box sx={{ mt: 2, textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
-                  Don't have an account?{' '}
+                  {t('login.noAccountPrompt')}{' '}
                   <Link
                     component="button"
                     variant="body2"
@@ -326,7 +327,7 @@ const Login = () => {
                       }
                     }}
                   >
-                    Register here
+                    {t('login.registerHereLink')}
                   </Link>
                 </Typography>
               </Box>
