@@ -39,18 +39,18 @@ export class ApiServices {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          'Content-Type': 'x-www-form-urlencoded',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': `Bearer ${token}`
         },
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Error del servidor (estatus: ${response.status}, ${errorText})`);
+        throw new Error(`Server error (status: ${response.status}, ${errorText})`);
       }
       return await response.json();
     } catch (error) {
-      console.error('Error in checkToken:', error);
+      console.error('An error has ocurred in auth token service:', error);
       throw error;
     }
   }
@@ -64,17 +64,18 @@ export class ApiServices {
    * @throws {Error} - When an error occurs in the current request.
    */
   async login(identifier, password) {
+    const param = new URLSearchParams();
+    param.append("identifier", identifier);
+    param.append("password",password);
+
     try {
       const API = this.getFullApiUrl('/auth/login');
       const response = await fetch(API, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: JSON.stringify({
-          identifier,
-          password
-        })
+        body: param.toString()
       });
       const data = await response.json();
 
@@ -94,14 +95,25 @@ export class ApiServices {
    * @throws {Error} When an error occurs in the request.
    */
   async register(data) {
+    const param = new URLSearchParams();
+    
+    param.append("first_name",data.first_name);
+    param.append("last_name",data.last_name);
+    param.append("nickname",data.nickname);
+    param.append("email",data.email);
+    param.append("password",data.password);
+    param.append("currency",'null');
+    param.append("photo",'null');
+    param.append("status",1);
+
     try {
       const API = this.getFullApiUrl('/auth/register');
       const response = await fetch(API, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: JSON.stringify(data)
+        body: param.toString()
       });
 
       const data = await response.json();
@@ -126,7 +138,7 @@ export class ApiServices {
       const response = await fetch(API, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': `Bearer ${token}`
         }
       });
@@ -151,7 +163,7 @@ export class ApiServices {
       const response = await fetch(API, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': `Bearer ${token}`
         }
       });
@@ -176,7 +188,7 @@ export class ApiServices {
       const response = await fetch(API, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(userData)
@@ -203,7 +215,7 @@ export class ApiServices {
       const response = await fetch(API, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(userData)
@@ -230,7 +242,7 @@ export class ApiServices {
       const response = await fetch(API, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(userData)
@@ -256,7 +268,7 @@ export class ApiServices {
       const response = await fetch(API, {
         method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': `Bearer ${token}`
         }
       });

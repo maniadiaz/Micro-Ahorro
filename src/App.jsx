@@ -4,9 +4,14 @@ import { AuthGuard, PublicGuard } from './guards/AuthGuard';
 import ProtectedLayout from './layouts/ProtectedLayout';
 import PublicLayout from './layouts/PublicLayout';
 
+// Auth
+import Login from './app/page/auth/Login';
+import Register from './app/page/auth/Register';
+import RestarPassword from './app/page/auth/restorePassword';
+
+
 // Páginas
 import Home from './app/page/home/Home';
-import Login from './app/page/login/Login';
 import Dashboard from './app/page/dashboard/Dashboard';
 import Profile from './app/page/profile/Profile';
 import NotFound from './app/page/errors/NotFound';
@@ -28,6 +33,21 @@ function App() {
               </PublicGuard>
             }
           />
+
+          <Route path='/register'
+            element={
+              <PublicGuard>
+                <Register />
+              </PublicGuard>
+            }
+          />
+          <Route path='/restore-password'
+            element={
+              <PublicGuard>
+                <RestarPassword />
+              </PublicGuard>
+            }
+          />
         </Route>
 
         {/* Rutas protegidas anidadas bajo AuthGuard y ProtectedLayout */}
@@ -43,6 +63,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
+
           {/* Agrega más rutas protegidas aquí */}
         </Route>
 
