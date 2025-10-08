@@ -66,7 +66,7 @@ export class ApiServices {
   async login(identifier, password) {
     const param = new URLSearchParams();
     param.append("identifier", identifier);
-    param.append("password",password);
+    param.append("password", password);
 
     try {
       const API = this.getFullApiUrl('/auth/login');
@@ -96,15 +96,15 @@ export class ApiServices {
    */
   async register(data) {
     const param = new URLSearchParams();
-    
-    param.append("first_name",data.first_name);
-    param.append("last_name",data.last_name);
-    param.append("nickname",data.nickname);
-    param.append("email",data.email);
-    param.append("password",data.password);
-    param.append("currency",'null');
-    param.append("photo",'null');
-    param.append("status",1);
+
+    param.append("first_name", data.first_name);
+    param.append("last_name", data.last_name);
+    param.append("nickname", data.nickname);
+    param.append("email", data.email);
+    param.append("password", data.password);
+    param.append("currency", 'null');
+    param.append("photo", 'null');
+    param.append("status", 1);
 
     try {
       const API = this.getFullApiUrl('/auth/register');
@@ -279,4 +279,373 @@ export class ApiServices {
       throw error;
     }
   }
-}
+
+  /**
+   * Fetches all goals from the API.
+   * @param {String} token - The authentication token for authorization.
+   * @returns {Promise<Object>} The API response, typically a list of goals.
+   * @throws {Error} When an error occurs in the request.
+   */
+  async getGoals(token) {
+    try {
+      const API = this.getFullApiUrl('/goals/');
+      const response = await fetch(API, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log("An error has occurred in getGoals service: ", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetches all goals for a specific user by their user ID from the API.
+   * @param {String} token - The authentication token for authorization.
+   * @param {String|Number} userId - The ID of the user whose goals are to be fetched.
+   * @returns {Promise<Object>} The API response, typically a list of goals for the specified user.
+   * @throws {Error} When an error occurs in the request.
+   */
+  async getGoalsByUserId(token, userId) {
+    try {
+      const API = this.getFullApiUrl(`/goals/user/${userId}`);
+      const response = await fetch(API, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log("An error has occurred in getGoalsByUserId service: ", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetches a single goal by its ID from the API.
+   * @param {String} token - The authentication token for authorization.
+   * @param {String|Number} id - The ID of the goal to fetch.
+   * @returns {Promise<Object>} The API response, typically the goal data.
+   * @throws {Error} When an error occurs in the request.
+   */
+  async getGoalById(token, id) {
+    try {
+      const API = this.getFullApiUrl(`/goals/${id}`);
+      const response = await fetch(API, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log("An error has occurred in getGoalById service: ", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a new goal via the API.
+   * @param {String} token - The authentication token for authorization.
+   * @param {Object} goalData - The data for the new goal.
+   * @returns {Promise<Object>} The API response, typically the created goal data.
+   * @throws {Error} When an error occurs in the request.
+   */
+  async createGoal(token, goalData) {
+    const param = new URLSearchParams();
+    param.append("name", goalData.name);
+    param.append("amount", goalData.amount);
+    param.append("estimated_date", goalData.estimated_date);
+    param.append("user_id", goalData.user_id);
+
+    try {
+      const API = this.getFullApiUrl('/goals/');
+      const response = await fetch(API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Bearer ${token}`
+        },
+        body: param.toString()
+      });
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log("An error has occurred in createGoal service: ", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Updates a goal's data using the PUT method.
+   * @param {String} token - The authentication token for authorization.
+   * @param {String|Number} id - The ID of the goal to update.
+   * @param {Object} goalData - The new data for the goal.
+   * @returns {Promise<Object>} The API response.
+   * @throws {Error} When an error occurs in the request.
+   */  async updateGoalPut(token, id, goalData) {
+    try {
+      const API = this.getFullApiUrl(`/goals/${id}`);
+      const response = await fetch(API, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(goalData)
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log("An error has occurred in updateGoalPut service: ", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Partially updates a goal's data using the PATCH method.
+   * @param {String} token - The authentication token for authorization.
+   * @param {String|Number} id - The ID of the goal to update.
+   * @param {Object} goalData - The fields to update.
+   * @returns {Promise<Object>} The API response.
+   * @throws {Error} When an error occurs in the request.
+   */
+  async updateGoalPatch(token, id, goalData) {
+    try {
+      const API = this.getFullApiUrl(`/goals/${id}`);
+      const response = await fetch(API, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(goalData)
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log("An error has occurred in updateGoalPatch service: ", error);
+      throw error;
+    }
+  }
+    /**
+     * Deletes a goal by its ID via the API.
+     * @param {String} token - The authentication token for authorization.
+     * @param {String|Number} id - The ID of the goal to delete.
+     * @returns {Promise<Object>} The API response.
+     * @throws {Error} When an error occurs in the request.
+     */
+    async deleteGoal(token, id) {
+      try {
+        const API = this.getFullApiUrl(`/goals/${id}`);
+        const response = await fetch(API, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.log("An error has occurred in deleteGoal service: ", error);
+        throw error;
+      }
+    }
+  
+    /**
+     * Fetches all savings from the API.
+     * @param {String} token - The authentication token for authorization.
+     * @returns {Promise<Object>} The API response, typically a list of savings.
+     * @throws {Error} When an error occurs in the request.
+     */
+    async getSavings(token) {
+      try {
+        const API = this.getFullApiUrl('/savings/');
+        const response = await fetch(API, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.log("An error has occurred in getSavings service: ", error);
+        throw error;
+      }
+    }
+  
+    /**
+     * Fetches all savings for a specific goal by its goal ID from the API.
+     * @param {String} token - The authentication token for authorization.
+     * @param {String|Number} goalId - The ID of the goal whose savings are to be fetched.
+     * @returns {Promise<Object>} The API response, typically a list of savings for the specified goal.
+     * @throws {Error} When an error occurs in the request.
+     */
+    async getSavingsByGoalId(token, goalId) {
+      try {
+        const API = this.getFullApiUrl(`/savings/goal/${goalId}`);
+        const response = await fetch(API, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.log("An error has occurred in getSavingsByGoalId service: ", error);
+        throw error;
+      }
+    }
+  
+    /**
+     * Fetches a single saving by its ID from the API.
+     * @param {String} token - The authentication token for authorization.
+     * @param {String|Number} id - The ID of the saving to fetch.
+     * @returns {Promise<Object>} The API response, typically the saving data.
+     * @throws {Error} When an error occurs in the request.
+     */
+    async getSavingById(token, id) {
+      try {
+        const API = this.getFullApiUrl(`/savings/${id}`);
+        const response = await fetch(API, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.log("An error has occurred in getSavingById service: ", error);
+        throw error;
+      }
+    }
+  
+    /**
+     * Creates a new saving via the API.
+     * @param {String} token - The authentication token for authorization.
+     * @param {Object} savingData - The data for the new saving.
+     * @returns {Promise<Object>} The API response, typically the created saving data.
+     * @throws {Error} When an error occurs in the request.
+     */
+    async createSaving(token, savingData) {
+      const param = new URLSearchParams();
+      param.append("name", savingData.name);
+      param.append("amount", savingData.amount);
+      param.append("goal_id", savingData.goal_id);
+  
+      try {
+        const API = this.getFullApiUrl('/savings/');
+        const response = await fetch(API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${token}`
+          },
+          body: param.toString()
+        });
+        
+        const data = await response.json();
+        return data;
+      }  catch (error) {
+        console.log("An error has occurred in createSaving service: ", error);
+        throw error;
+      }
+    }
+  
+    /**
+     * Updates a saving's data using the PUT method.
+     * @param {String} token - The authentication token for authorization.
+     * @param {String|Number} id - The ID of the saving to update.
+     * @param {Object} savingData - The new data for the saving.
+     * @returns {Promise<Object>} The API response.
+     * @throws {Error} When an error occurs in the request.
+     */
+    async updateSavingPut(token, id, savingData) {
+      try {
+        const API = this.getFullApiUrl(`/savings/${id}`);
+        const response = await fetch(API, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(savingData)
+        });
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.log("An error has occurred in updateSavingPut service: ", error);
+        throw error;
+      }
+    }
+  
+    /**
+     * Partially updates a saving's data using the PATCH method.
+     * @param {String} token - The authentication token for authorization.
+     * @param {String|Number} id - The ID of the saving to update.
+     * @param {Object} savingData - The fields to update.
+     * @returns {Promise<Object>} The API response.
+     * @throws {Error} When an error occurs in the request.
+     */
+    async updateSavingPatch(token, id, savingData) {
+      try {
+        const API = this.getFullApiUrl(`/savings/${id}`);
+        const response = await fetch(API, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(savingData)
+        });
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.log("An error has occurred in updateSavingPatch service: ", error);
+        throw error;
+      }
+    }
+  
+    /**
+     * Deletes a saving by its ID via the API.
+     * @param {String} token - The authentication token for authorization.
+     * @param {String|Number} id - The ID of the saving to delete.
+     * @returns {Promise<Object>} The API response.
+     * @throws {Error} When an error occurs in the request.
+     */
+    async deleteSaving(token, id) {
+      try {
+        const API = this.getFullApiUrl(`/savings/${id}`);
+        const response = await fetch(API, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.log("An error has occurred in deleteSaving service: ", error);
+        throw error;
+      }
+    }
+  }
