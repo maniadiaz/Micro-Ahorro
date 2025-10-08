@@ -1,5 +1,7 @@
-
 import { useTranslation } from 'react-i18next';
+import { Box, Fab } from '@mui/material';
+import TranslateIcon from '@mui/icons-material/Translate';
+
 
 const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
@@ -10,23 +12,12 @@ const LanguageSwitcher = () => {
   };
 
   return (
-    <button
-      onClick={toggleLanguage}
-      style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        padding: '10px 20px',
-        borderRadius: '5px',
-        backgroundColor: '#1a1e22ff',
-        color: 'white',
-        border: 'none',
-        cursor: 'pointer',
-        zIndex: 1000,
-      }}
-    >
-      {i18n.language}
-    </button>
+    <Box sx={{ position: 'fixed', bottom: { xs: '20px', md: '30px' }, right: '20px', padding: '10px 20px', zIndex: 1000 }}>
+      <Fab color="primary" aria-label='add'
+        onClick={toggleLanguage}>
+        <TranslateIcon />
+      </Fab>
+    </Box>
   );
 };
 
