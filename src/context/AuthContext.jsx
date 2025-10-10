@@ -178,6 +178,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     isLoading,
     loggedInAt,
+    apiService: apiService,
     login,
     logout,
     checkAuth,

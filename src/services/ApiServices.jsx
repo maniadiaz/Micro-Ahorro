@@ -306,12 +306,12 @@ export class ApiServices {
 
   /**
    * Fetches all goals for a specific user by their user ID from the API.
-   * @param {String} token - The authentication token for authorization.
    * @param {String|Number} userId - The ID of the user whose goals are to be fetched.
    * @returns {Promise<Object>} The API response, typically a list of goals for the specified user.
    * @throws {Error} When an error occurs in the request.
    */
-  async getGoalsByUserId(token, userId) {
+  async getGoalsByUserId(userId) {
+    const token = this.getToken();
     try {
       const API = this.getFullApiUrl(`/goals/user/${userId}`);
       const response = await fetch(API, {
@@ -495,7 +495,8 @@ export class ApiServices {
      * @returns {Promise<Object>} The API response, typically a list of savings for the specified goal.
      * @throws {Error} When an error occurs in the request.
      */
-    async getSavingsByGoalId(token, goalId) {
+    async getSavingsByGoalId(goalId) {
+      const token = this.getToken();
       try {
         const API = this.getFullApiUrl(`/savings/goal/${goalId}`);
         const response = await fetch(API, {

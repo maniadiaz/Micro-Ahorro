@@ -5,6 +5,8 @@ import { AuthGuard, PublicGuard } from './guards/AuthGuard';
 import ProtectedLayout from './layouts/ProtectedLayout';
 import PublicLayout from './layouts/PublicLayout';
 import LanguageSwitcher from './app/components/LanguageSwitcher/LanguageSwitcher';
+import { GoalProvider } from './context/GoalContext';
+import { SavingProvider } from './context/SavingsContext';
 
 const Login = lazy(() => import('./app/page/auth/Login'));
 const Register = lazy(() => import('./app/page/auth/Register'));
@@ -21,58 +23,60 @@ function App() {
   return (
     <AuthProvider>
       <LanguageSwitcher />
-      <Suspense fallback={<div>Loading...</div>}>
-        <Routes>
-          {/* Rutas públicas anidadas bajo PublicLayout */}
-          <Route element={<PublicLayout />}>
-            <Route
-              path="/login"
-              element={
-                <PublicGuard>
-                  <Login />
-                </PublicGuard>
-              }
-            />
-
-            <Route path='/register'
-              element={
-                <PublicGuard>
-                  <Register />
-                </PublicGuard>
-              }
-            />
-            <Route path='/restore-password'
-              element={
-                <PublicGuard>
-                  <RestarPassword />
-                </PublicGuard>
-              }
-            />
-          </Route>
-
-          {/* Rutas protegidas anidadas bajo AuthGuard y ProtectedLayout */}
+      <Routes>
+        {/* Rutas públicas anidadas bajo PublicLayout */}
+        <Route element={<PublicLayout />}>
           <Route
+            path="/login"
             element={
-              <AuthGuard>
-                <ProtectedLayout />
-              </AuthGuard>
+              <PublicGuard>
+                <Login />
+              </PublicGuard>
             }
-          >
-            {/* La ruta raíz ahora intenta ir a Home, AuthGuard decidirá */}
-            <Route path="/" element={<Navigate to="/home" replace />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<Profile />} />
+          />
 
-            {/* Agrega más rutas protegidas aquí */}
-          </Route>
+          <Route path='/register'
+            element={
+              <PublicGuard>
+                <Register />
+              </PublicGuard>
+            }
+          />
+          <Route path='/restore-password'
+            element={
+              <PublicGuard>
+                <RestarPassword />
+              </PublicGuard>
+            }
+          />
+        </Route>
 
-          {/* Rutas de error */}
-          <Route path="/unauthorized" element={<Unauthorized />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
-          <Route path="/404" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+        {/* Rutas protegidas anidadas bajo AuthGuard y ProtectedLayout */}
+        <Route
+          element={
+            <AuthGuard>
+              <GoalProvider>
+                <SavingProvider>
+                  <ProtectedLayout />
+                </SavingProvider>
+              </GoalProvider>
+            </AuthGuard>
+          }
+        >
+          {/* La ruta raíz ahora intenta ir a Home, AuthGuard decidirá */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+
+          {/* Agrega más rutas protegidas aquí */}
+        </Route>
+
+        {/* Rutas de error */}
+        <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
+        <Route path="/404" element={<NotFound />} />
+      </Routes>
     </AuthProvider>
   );
 }
